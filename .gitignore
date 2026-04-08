@@ -6,6 +6,9 @@ local_backup/
 .vscode/*
 !.vscode/settings.template.json
 
+# OpenCode agent state
+.opencode/
+
 # OS / editor noise
 .DS_Store
 Thumbs.db
