@@ -1,5 +1,7 @@
 # PowerShell Profile
 
+> [English](README.md) | [한국어](README.ko.md)
+
 A reusable `pwsh` (PowerShell 7) profile setup for Windows-first development environments. Designed to be beginner-friendly while offering deep customization for power users.
 
 ## Table of Contents
