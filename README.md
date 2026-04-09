@@ -132,9 +132,9 @@ winget install Microsoft.PowerShell
 pwsh --version
 ```
 
-### Oh My Posh — Recommended
+### Oh My Posh — Required
 
-Oh My Posh renders the styled prompt with icons, git status, and path-aware coloring.
+Oh My Posh renders the styled prompt with icons, git status, and path-aware coloring. The profile includes a hardcoded theme (`theme/clean-detailed_custom.omp.json`) and exports `POSH_*` environment variables for dynamic path icon mapping. Without Oh My Posh, the profile still loads but you lose the core prompt experience.
 
 **What it does**: Replaces the plain PowerShell prompt with a themeable, feature-rich prompt that shows directory context, git branch, error states, and execution time.
 
@@ -144,17 +144,32 @@ Oh My Posh renders the styled prompt with icons, git status, and path-aware colo
 winget install JanDeDobbeleer.OhMyPosh
 ```
 
+**Verify**:
+
+```powershell
+oh-my-posh version
+```
+
 [Oh My Posh documentation](https://ohmyposh.dev/docs/installation/windows)
 
-### Nerd Font — Recommended
+### Nerd Font — Required (with Oh My Posh)
 
-The prompt theme uses glyphs and icons from Nerd Fonts (e.g., folder icons, git symbols, Python logo). Without a Nerd Font, these appear as `□` or `?` boxes.
+The included Oh My Posh theme uses glyphs and icons from Nerd Fonts (folder icons, git symbols, language logos, path icons). Without a Nerd Font installed and selected as your terminal font, these glyphs appear as `□` or `?` boxes.
 
-**Why needed**: The `clean-detailed_custom.omp.json` theme includes path icons and language symbols that require Nerd Font glyphs.
+**Recommended fonts**: `CascadiaCode Nerd Font` or `FiraCode Nerd Font` — both work well with this profile.
 
-**Install**: Download `CascadiaCode_Nerd_Font` or any other Nerd Font from [nerdfonts.com](https://www.nerdfonts.com/font-downloads).
+**Install**:
+
+```powershell
+# Option 1: Oh My Posh built-in font installer (recommended)
+oh-my-posh font install CascadiaCode
+
+# Option 2: Download manually from nerdfonts.com
+```
 
 **Set in terminal**: After installing, go to your terminal settings and select the Nerd Font variant (e.g., `CascadiaCode Nerd Font`) as the active font.
+
+[Nerd Fonts downloads](https://www.nerdfonts.com/font-downloads)
 
 ### `uv` — Optional
 
