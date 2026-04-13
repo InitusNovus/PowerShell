@@ -2,10 +2,28 @@
 # PowerShell Profile (copy-paste 전체)
 # ======================================================================
 
-# --- macOS 전용 PATH 확장 (Windows에서 실행되지 않게) ---
+# --- macOS/Linux PATH 확장 (Windows에서 실행되지 않게) ---
 # $env:PATH += ":/usr/local/share/dotnet:~/.dotnet/tools:/Library/Apple/usr/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/opt/homebrew/bin:$HOME/miniconda3/bin"
 if (-not $IsWindows) {
-  $env:PATH += ":/usr/local/share/dotnet:~/.dotnet/tools:/Library/Apple/usr/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/opt/homebrew/bin"
+  # Profile load timer (Windows는 PS 7.6 내장 타이머 사용)
+  $script:ProfileLoadStart = [System.Diagnostics.Stopwatch]::StartNew()
+
+  # Linux/macOS 경로를 PATH 앞에 배치하여 Get-Command 탐색 속도 향상
+  # (WSL에서 Windows PATH 상속 시 수십 개 경로를 뒤지는 것 방지)
+  $linuxPaths = @(
+    "$HOME/.local/bin"
+    "/usr/local/bin"
+    "/usr/bin"
+    "/bin"
+    "/usr/local/share/dotnet"
+    "$HOME/.dotnet/tools"
+    "/opt/homebrew/bin"
+  )
+  $sep = [System.IO.Path]::PathSeparator
+  $existingEntries = $env:PATH -split [regex]::Escape($sep) | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+  $frontEntries = $linuxPaths | Where-Object { $_ -and (Test-Path -LiteralPath $_ -ErrorAction SilentlyContinue) }
+  $remainingEntries = $existingEntries | Where-Object { $_ -notin $frontEntries }
+  $env:PATH = ($frontEntries + $remainingEntries) -join $sep
 }
 
 # ======================================================================
@@ -282,6 +300,20 @@ $Global:UvGlobalVenv = if (Split-Path -Path $script:Config.UvGlobalVenv -IsAbsol
 function Get-VenvBinDir([string]$venvPath) {
     if ($IsWindows) { Join-Path $venvPath "Scripts" }
     else            { Join-Path $venvPath "bin" }
+}
+
+# --- Non-Windows: global venv bin을 PATH에 자동 추가 ---
+# Windows에서는 시스템/사용자 PATH에 수동 등록하지만,
+# Linux/WSL에서는 프로필에서 자동으로 PATH 앞에 배치
+if (-not $IsWindows) {
+  $venvResolved = (Resolve-Path -LiteralPath $Global:UvGlobalVenv -ErrorAction SilentlyContinue)?.Path
+  if ($venvResolved) {
+    $venvBin = Get-VenvBinDir $venvResolved
+    if (Test-Path -LiteralPath $venvBin) {
+      Prepend-PathEntry $venvBin
+      $env:VIRTUAL_ENV = $venvResolved
+    }
+  }
 }
 
 # !!! NOTE: Common PATH utilities의 Remove-PathEntry와 이름 충돌 나지 않게 uv 전용으로 분리 !!!
@@ -1224,6 +1256,13 @@ function Write-StartupHeader {
 function Write-StartupFooter {
   $w = Get-ConsoleWidthSafe
   $lineBot = ("=" * $w)
+  # Profile load time (non-Windows only; Windows는 PS 7.6 내장)
+  if ((-not $IsWindows) -and $script:ProfileLoadStart) {
+    $script:ProfileLoadStart.Stop()
+    $ms = $script:ProfileLoadStart.ElapsedMilliseconds
+    $loadText = Get-StyleText -Text ("Profile loaded in {0}ms" -f $ms) -Foreground BrightBlack -Italic
+    Write-Host $loadText
+  }
   Write-StyledLine -Text $lineBot -Foreground BrightBlack
   Write-StyledLine ""
 }
