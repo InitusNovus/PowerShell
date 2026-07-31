@@ -177,6 +177,12 @@ Set-PoshPathEnv -Name "WSL_ROOT" -PathValue $script:WslRootPath
 Set-PoshPathEnv -Name "WSL_HOME" -PathValue $script:WslHomePath
 Set-PoshPathEnv -Name "WSL_DEV"  -PathValue $script:WslDevPath
 
+# GJC 0.12.7의 Windows psmux 자동 탐지는 WinGet의 psmux/pmux/tmux 별도
+# 실행 파일을 서로 다른 provider로 오인한다. 공식 override로 provider를 고정한다.
+if ($IsWindows -and (Get-Command psmux -ErrorAction SilentlyContinue)) {
+  $env:GJC_TMUX_COMMAND = "psmux"
+}
+
 # --- oh-my-posh init ---
 if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
   $ompCfg = Resolve-ProfilePath $script:Config.OhMyPoshTheme
